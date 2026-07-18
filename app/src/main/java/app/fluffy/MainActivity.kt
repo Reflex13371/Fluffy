@@ -588,6 +588,15 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
+        isPickerMode = intent.action in listOf(
+            Intent.ACTION_GET_CONTENT,
+            Intent.ACTION_OPEN_DOCUMENT
+        )
+        pickerMimeType = intent.type
+        if (isPickerMode) {
+            filesVM.setPickerMode(true, pickerMimeType)
+        }
         handleViewIntent(intent)
     }
 
