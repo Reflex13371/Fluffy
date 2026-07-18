@@ -153,6 +153,23 @@ fun Context.purgeOldExports(maxAgeMs: Long = 72L * 3600_000) { val now = System.
         runCatching { f.delete() } }
 }
 
+suspend fun Context.exportForPicker(src: Uri, displayName: String): Uri = withContext(Dispatchers.IO) {
+    val safeName = displayName.ifBlank { "item" }
+        .replace(Regex("[^\\w.\\-]"), "_")
+    val out = File(cacheDir, "pick_${System.currentTimeMillis()}_$safeName")
+    when (src.scheme) {
+        "content" -> src
+        "file" -> {
+            File(requireNotNull(src.path)).inputStream().use { i -> out.outputStream().use { i.copyTo(it) } }
+            FileProvider.getUriForFile(this@exportForPicker, "$packageName.fileprovider", out)
+        }
+        "root", "shizuku" -> {
+            AppUtilsHelper.io.openIn(src).use { `in` -> out.outputStream().use { `in`.copyTo(it) } }
+            FileProvider.getUriForFile(this@exportForPicker, "$packageName.fileprovider", out)
+        }
+        else -> src
+    }
+}
 
 // Need to copy root:// and shizuku:// to cache and wrap with FileProvider.
 suspend fun Context.exportForOpenWith(src: Uri, displayName: String): Uri = withContext(Dispatchers.IO) {
