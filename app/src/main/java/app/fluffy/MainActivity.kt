@@ -69,6 +69,7 @@ import app.fluffy.helper.purgeOldExports
 import app.fluffy.helper.purgeOldViewerCache
 import app.fluffy.helper.toViewableUris
 import app.fluffy.helper.exportForOpenWith
+import app.fluffy.helper.exportForPicker
 import app.fluffy.io.FileSystemAccess
 import app.fluffy.operations.ArchiveJobManager
 import app.fluffy.ui.components.ConfirmationDialog
@@ -701,8 +702,9 @@ class MainActivity : ComponentActivity() {
 
     private fun returnPickedFile(uri: Uri) {
         lifecycleScope.launch {
+            val displayName = io.queryDisplayName(uri)
             val shareable = runCatching {
-                applicationContext.exportForOpenWith(uri, io.queryDisplayName(uri))
+                applicationContext.exportForPicker(uri, displayName)
             }.getOrElse { uri }
 
             val mime = contentResolver.getType(shareable)
